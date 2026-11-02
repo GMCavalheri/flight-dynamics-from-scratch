@@ -52,12 +52,12 @@ flight-dynamics-from-scratch/
 ```
 
 ## Execution Plan
-- [ ] **Phase 1 — Equations of motion**: implement the nonlinear 6-DOF rigid-body equations, validate against simplified textbook motion cases (e.g., pure pitching motion with no aerodynamics).
-- [ ] **Phase 2 — Aerodynamic derivative model**: implement the standard linear stability derivative representation of aerodynamic forces/moments.
-- [ ] **Phase 3 — Trim solver**: implement a numerical solver for trim angle of attack/elevator deflection given aircraft configuration.
-- [ ] **Phase 4 — Linearization and modal analysis**: linearize about trim, extract state-space matrices, compute and classify eigenvalues into the classical flight modes.
-- [ ] **Phase 5 — Nonlinear simulation**: simulate full nonlinear response to control doublets, compare time constants/frequencies against the linear mode predictions from Phase 4.
-- [ ] **Phase 6 — Stability trade studies**: sweep CG location and tail volume coefficient, show their effect on static margin and dynamic mode damping/frequency.
+- [x] **Phase 1 — Equations of motion**: implement the nonlinear 6-DOF rigid-body equations, validate against simplified textbook motion cases (e.g., pure pitching motion with no aerodynamics).
+- [x] **Phase 2 — Aerodynamic derivative model**: implement the standard linear stability derivative representation of aerodynamic forces/moments.
+- [x] **Phase 3 — Trim solver**: implement a numerical solver for trim angle of attack/elevator deflection given aircraft configuration.
+- [x] **Phase 4 — Linearization and modal analysis**: linearize about trim, extract state-space matrices, compute and classify eigenvalues into the classical flight modes.
+- [x] **Phase 5 — Nonlinear simulation**: simulate full nonlinear response to control doublets, compare time constants/frequencies against the linear mode predictions from Phase 4.
+- [x] **Phase 6 — Stability trade studies**: sweep CG location and tail volume coefficient, show their effect on static margin and dynamic mode damping/frequency.
 - [ ] **Phase 7 — Documentation and publishing**: written explanation of each mode's physical meaning, animated visualizations of aircraft response.
 
 ## Validation Strategy
