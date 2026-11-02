@@ -15,7 +15,7 @@ from scipy.integrate import solve_ivp
 
 from flightdyn import equations_of_motion as eom
 from flightdyn import plotting as P
-from flightdyn.aircraft import MassProperties, ThrustLine
+from flightdyn.aircraft import MassProperties
 from flightdyn.rotations import euler_rates
 from flightdyn.trim_solver import trim, trim_guess
 from flightdyn.units import G0, KT, LBF
@@ -102,11 +102,11 @@ def l3_trim_curves():
     """747 power-approach model trimmed across speed: alpha, elevator, thrust."""
     ac, c = b747(2), b747_condition(2)
     kt = np.linspace(140.0, 200.0, 25)
-    no_line = ac.with_(thrust=ThrustLine(0.0, 0.0))
+    untrimmed = ac.with_(aero=ac.aero.with_(Cm0=0.0))
     fig, axes = plt.subplots(1, 3, figsize=(11, 3.8))
     for model, label, color in [
-        (ac, "published thrust line", P.SERIES[0]),
-        (no_line, "thrust through the CG, along x", P.SERIES[1]),
+        (ac, "Cm0 balances the thrust moment", P.SERIES[0]),
+        (untrimmed, "Cm0 = 0", P.SERIES[1]),
     ]:
         ts = _trim_sweep(model, kt * KT, c["h"])
         axes[0].plot(kt, [np.degrees(t.alpha) for t in ts], color=color, label=label)

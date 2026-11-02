@@ -89,7 +89,7 @@ ac, c = b747(2), b747_condition(2)  # power approach, 165 KTAS, sea level
 t = trim(ac, c["V"], c["h"])
 alpha, de = np.degrees(t.alpha), np.degrees(t.de)
 print(f"alpha {alpha:.2f} deg, de {de:.2f} deg, T {t.thrust / LBF:.0f} lbf")
-# alpha 5.52 deg, de 1.75 deg, T 50981 lbf
+# alpha 5.62 deg, de 0.08 deg, T 51554 lbf
 t = trim(ac, c["V"], c["h"], turn_rate=np.radians(3.0))
 print(f"bank {np.degrees(t.phi):.1f} deg, n = {1 / np.cos(t.phi):.3f}")
 # bank 24.9 deg, n = 1.102
@@ -129,10 +129,11 @@ Sweeping speed shows how a stable aircraft is flown:
 
 - **Angle of attack** falls with speed, roughly as $1/V^2$, because lift must stay equal
   to weight.
-- **Elevator** moves trailing-edge-down as speed increases: from −0.1° at 150 kt to +3.3° at
-  180 kt with the published thrust line. A pilot must *push* to fly faster and *pull* to fly
-  slower. That gradient is speed stability, and its sign follows from $C_{m_{\alpha}} < 0$.
-  Lower α means a nose-down $C_{m_{\alpha}}\Delta\alpha$ moment, which the elevator must cancel.
+- **Elevator** moves trailing-edge-down as speed increases: from −1.8° at 150 kt to +1.6° at
+  180 kt. A pilot must *push* to fly faster and *pull* to fly slower. That gradient is speed
+  stability, and its sign follows from $C_{m_{\alpha}} < 0$: at higher speed α is lower, so
+  $C_{m_{\alpha}}\Delta\alpha$ is a nose-up moment (both factors negative), which a
+  trailing-edge-down elevator must cancel.
 - **Thrust** falls slightly with speed here, because induced drag dominates near the approach
   speed. The linear drag model $C_D = C_{D_0} + C_{D_\alpha}\Delta\alpha$ captures that locally,
   but it is a tangent to the drag polar, not the polar.
@@ -149,32 +150,38 @@ load factor is $n = 1/\cos\phi$: 1.10 at 25° of bank. The elevator needed per g
 **manoeuvre stability** of the aircraft. It is larger than the speed-stability gradient
 alone suggests, because the pitch rate of the turn adds a $C_{m_{q}}$ damping moment.
 
-## 5. When the reference is not a trim point
+## 5. What "trimmed" data includes
 
-Run the solver at the 747's published flight conditions and something interesting appears.
-The derivatives of CR-2144 are "for trimmed flight": $C_m$ = 0 at α0 = 8.5° (fc 1) or 5.7°
-(fc 2) with zero elevator. Yet the model trims elsewhere:
+Run the solver at the 747's published flight conditions and a modelling question appears.
+The derivatives of CR-2144 are "for trimmed flight" at α0 = 8.5° (fc 1) and 5.7° (fc 2),
+and the report also publishes the thrust line: 2.5° nose-up from the body axis, 10 ft below
+the CG. At fc 1 the engines deliver about 83 000 lbf, a nose-up moment of 830 000 ft·lbf,
+$\Delta C_m$ = +0.096. So what is the *aerodynamic* $C_m$ at the reference?
 
-| | α trim | α0 published | δe trim | thrust |
-|---|---|---|---|---|
-| fc 1, published thrust line | 7.83° | 8.5° | +4.50° | 81 000 lbf |
-| fc 1, thrust through CG along x | 8.17° | 8.5° | +0.34° | 82 800 lbf |
-| fc 2, published thrust line | 5.52° | 5.7° | +1.75° | 51 000 lbf |
-| fc 2, thrust through CG along x | 5.66° | 5.7° | +0.04° | 51 600 lbf |
+| fc 1 model | α trim (α0 = 8.5°) | δe trim | thrust |
+|---|---|---|---|
+| aerodynamic $C_{m_0}$ = 0 | 7.83° | +4.50° | 81 000 lbf |
+| $C_{m_0}$ = −0.096, balancing the thrust moment | 8.06° | +0.42° | 82 600 lbf |
+| thrust through the CG along x, $C_{m_0}$ = 0 | 8.17° | +0.34° | 82 800 lbf |
 
-The difference is the thrust line, which the report also publishes: 2.5° nose-up from the
-body axis, 10 ft below the CG. At fc 1, 81 000 lbf on a 10 ft arm is a nose-up moment of
-810 000 ft·lbf, $\Delta C_m$ = +0.093. Holding that takes $0.093/1.40$ rad = 3.8° of
-elevator. The thrust, inclined α + 2.5° to the flight path, also carries 2.6 % of the
-weight, so less wing lift is needed and α drops by 0.7°. The rest of the elevator offset
-holds the $C_{m_{\alpha}}\Delta\alpha$ moment of that lower angle of attack. The tests check
-this decomposition exactly.
+If "trimmed" meant $C_m$ = 0 for the airframe alone, the model would need 4.5° of elevator,
+3.8° of it ($0.093/1.40$ rad) to hold the thrust moment and the rest for the lower α. The report itself settles the question, through its dimensional
+derivatives. $M_u$ and $M_w$ (Lesson 2) both contain the reference $C_m$, and they are
+reproduced to 0.1–0.2 % only with $C_{m_0} = -Tl_{th}/(q S\bar c)$. With $C_{m_0}$ = 0, $M_u$ comes
+out 1.6–3 times too large. So the data was trimmed *with* the thrust moment: the tail carries
+a download that balances the engines. The model therefore sets $C_{m_0}$ that way. The thrust
+for it comes from the axial force balance at the reference (`b747_reference_cm0`), a
+deduction labelled as such, not data.
 
-The aerodynamic data and the thrust line were evidently not trimmed together. Which is right
-cannot be settled from the report. The lesson is general, though: thrust effects on trim are
-not small for aircraft with low-slung engines, and "trimmed" data needs to say what it
-includes. For the modal comparisons of Lesson 4, the linearization is therefore done both
-at the model's own trim and at the published reference.
+One offset remains: α trims 0.44° below α0 at fc 1. The tabulated $C_L$ = 1.76 equals
+W/(qS), so it does not count the lift of the thrust. Inclined at α + 2.5° to the flight path,
+the thrust carries 2.6 % of the weight, and the wing needs correspondingly less angle of
+attack. The tests check that the α offset equals this thrust lift over $qSC_{L_\alpha}$.
+
+Two lessons generalise. Thrust effects on trim are not small for aircraft with low-slung
+engines, and "trimmed" data needs to say what it includes. When a report does not say,
+its other tables may: here the derivatives of one table decided a question that the
+definitions in another left open.
 
 ## 6. Common pitfalls
 
@@ -197,7 +204,7 @@ at the model's own trim and at the published reference.
 3. Derive the body rates of a steady level turn for θ = 0. Which rate grows with bank?
 4. Using the 747 fc 1 numbers ($C_{m_{\delta_e}}$ = −1.40, q = 58.1 psf, S = 5500 ft²,
    c̄ = 27.31 ft), estimate the elevator needed to hold the moment of 81 000 lbf on a 10 ft
-   arm.
+   arm if the airframe alone were trimmed.
 5. Why does the elevator per g in a turn depend on $C_{m_{q}}$?
 
 <details>
@@ -208,7 +215,7 @@ at the model's own trim and at the published reference.
    Using product-to-sum identities, numerator = ½(sin 2α + sin 2γ) = sin(α+γ)cos(α−γ) and
    denominator = cos(α+γ)cos(α−γ). So tan θ = tan(α + γ).
 2. tan φ = 84.9 × 0.0524 / 9.807 = 0.453, so φ = 24.4°. The trim gives 24.9°. The
-   difference comes from α (6.6° in the turn) tilting body x away from the velocity.
+   difference comes from α (6.7° in the turn) tilting body x away from the velocity.
 3. With θ = 0: p = 0, q = ψ̇ sin φ, r = ψ̇ cos φ. The pitch rate grows with bank. In a
    steep turn the aircraft is mostly pitching, not yawing.
 4. $\Delta C_m$ = 81 000 × 10 / (58.1 × 5500 × 27.31) = 0.0928. δe = 0.0928/1.40 = 0.066 rad =
@@ -226,8 +233,8 @@ at the model's own trim and at the published reference.
   unknowns, six accelerations plus a sideslip or bank constraint.
 - Verify trim against independent physics: a scalar wind-axis solution, the inertial
   centripetal balance, and a simulation that stays put.
-- A published "trimmed" condition may not be an equilibrium of a model assembled from the
-  same report. Thrust-line effects alone move the 747's trim by 4.5° of elevator.
+- "Trimmed" data must say whether it includes the thrust moment. For the 747 the answer is
+  worth 4.5° of elevator, and the report's own $M_u$ and $M_w$ reveal it.
 
 ## Further reading
 

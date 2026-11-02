@@ -173,21 +173,19 @@ comparing with the second is a strong check, on the transcription and on the rep
 
 ![747 dimensional derivatives: model vs CR-2144](../figures/derivatives_b747.png)
 
-**The 747.** Twenty-two of the twenty-five derivatives agree within 0.65 %, the rounding of
+**The 747.** Twenty-four of the twenty-five derivatives agree within 0.65 %, the rounding of
 three printed figures. The comparison also settles a question the report leaves open. Tables
 IX-1 and IX-2 do not say which axes their lateral derivatives use. Read as stability-axis
 derivatives (blue dots) they reproduce the dimensional table. Read as body-axis derivatives
-(orange crosses) they miss by up to 115 %. Three derivatives disagree for identifiable
-reasons:
+(orange crosses) they miss by up to 115 %. Two derivatives needed a closer look:
 
-- $M_{w}$ is 1.7 % (fc 1) and 0.7 % (fc 2) off. The table is reproduced to 0.35 % if the
-  small Mach term is *subtracted*. The derivation, and the report's own printed formula, add
-  it. This is a sign slip in the report's computation.
+- $M_{u}^{\ast}$ and $M_{w}$ contain the pitching moment coefficient at the reference. With
+  $C_{m_0}$ = 0 they come out 1.6–3 times and 1.7 % off. They are reproduced to 0.1–0.2 % if
+  the aerodynamic $C_m$ at the reference balances the moment of the published thrust line,
+  $C_{m_0} = -Tl_{th}/(qS\bar c)$ = −0.096 (fc 1) and −0.037 (fc 2). The data was trimmed
+  *with* the thrust moment, and Lesson 3 follows the consequences.
 - $Z_{q}$ is 1.1 % off at fc 1. The table values equal the formula with $U_0$ where the force
   model gives $V$: a factor $\cos\alpha_0$.
-- $M_{u}^{\ast}$ is not reproduced at all (factor 1.6–3). It contains a thrust term the report
-  does not publish. But $X_{u}^{\ast}$, which contains the same thrust term, agrees, so the
-  thrust term cannot explain it. Lesson 4 shows how little this matters for the modes.
 
 **The Navion.** Every dimensional derivative in Teper's Table X-D is larger than Table X-B
 implies, by exactly 2.22 % for moments and 2.31 % for forces. A uniform ratio points at one
@@ -249,8 +247,9 @@ applies everywhere: compute every published number you can from other published 
   $C_{n_{r}}$ give damping.
 - Stability and body axes differ by a rotation through α0. Lateral derivatives mix strongly
   under it.
-- Published data can be checked against itself. Here that settled an axis system and found
-  three slips in fifty-year-old reports.
+- Published data can be checked against itself. Here that settled an axis system, revealed
+  that the 747's data is trimmed with the thrust moment, and found a wing-area mismatch in a
+  fifty-year-old report.
 
 ## Further reading
 
