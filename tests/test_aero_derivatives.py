@@ -191,7 +191,7 @@ def test_b747_dimensional_derivatives_match_cr2144(fc):
 
 def test_b747_lateral_derivatives_are_stability_axis():
     # Tables IX-1/IX-2 do not name their axis system. Read as stability-axis derivatives they
-    # reproduce Table IX-8; read as body-axis ones they miss by up to 100 % (L'_dr)
+    # reproduce Table IX-8; read as body-axis ones they miss by up to 115 % (L'_dr)
     dd = _b747_dimensional(1, "body")
     ref = b747_data(1)
     errors = [abs(getattr(dd, attr) / ref[key] - 1) for key, attr in LAT if ref[key]]
