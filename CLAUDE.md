@@ -32,12 +32,18 @@ Plan: `AERO-04-flight-dynamics-from-scratch-PLAN.md` (tick the phase checkboxes 
   non-rotating Earth. Euler angles are the 3-2-1 sequence (ψ, θ, φ). Stability axes are body
   axes rotated by the trim angle of attack about y.
 - State vector order (12 states): `u v w p q r phi theta psi x_n y_e z_d`; controls
-  `de da dr thrust` (rad, rad, rad, N). Positive elevator is trailing edge down (nose-down
-  moment), positive aileron gives a negative (left-wing-down) rolling moment, positive rudder
-  gives a negative yawing moment — the sign convention of Etkin & Reid and of NASA CR-2144.
-- Derivative names follow NASA CR-2144 / Etkin: nondimensional `CL_a`, `Cm_q`, `Cn_b`;
-  dimensional (per unit mass or inertia) `Xu`, `Zw`, `Mq`, `Lb`, `Nr`, and primed lateral
-  derivatives `Lp_prime` include the Ixz coupling.
+  `de da dr thrust` (rad, rad, rad, N), deflections measured from the reference (trim) setting
+  of the derivative model. Signs follow the reference data (CR-2144, Teper): positive elevator
+  gives a nose-down moment (Cm_de < 0), positive aileron a right-wing-down rolling moment
+  (Cl_da > 0), positive rudder a nose-left yawing moment (Cn_dr < 0).
+- Altitude `h = -z_d` is geopotential (gravity is the constant g0). Reference data altitudes
+  are pressure altitudes, i.e. geopotential in the standard atmosphere.
+- Derivative names follow NASA CR-2144 / Etkin: nondimensional `CL_a`, `Cm_q`, `Cn_b`
+  (stability-axis lift/drag; lateral moments in stability or body axes, `lateral_axes`);
+  dimensional (per unit mass or inertia, SI) `Xu`, `Zw`, `Mq`, `Lb`, `Nr`; primed lateral
+  derivatives `Lp_p` include the Ixz coupling.
+- `validation/reference_aircraft.py` builds the Boeing 747 (CR-2144 fc 1 and 2) and the Navion
+  (Teper 1969) from the cited CSVs; tests import it through `tests/conftest.py`.
 - Pure NumPy/SciPy — no flight-dynamics libraries (no JSBSim, python-control, etc.).
 
 ## Docs (GitHub-rendered math)

@@ -1,5 +1,12 @@
 """Nonlinear rigid-body 6-DOF equations of motion (Euler-angle and quaternion forms)."""
 
+from .aircraft_dynamics import (
+    CONTROL_NAMES,
+    air_data,
+    forces_and_moments,
+    level_state,
+    state_derivative,
+)
 from .rigid_body import (
     PHI,
     PSI,
@@ -23,6 +30,11 @@ from .rigid_body import (
 )
 
 __all__ = [
+    "CONTROL_NAMES",
+    "air_data",
+    "forces_and_moments",
+    "level_state",
+    "state_derivative",
     "P",
     "PHI",
     "PSI",
