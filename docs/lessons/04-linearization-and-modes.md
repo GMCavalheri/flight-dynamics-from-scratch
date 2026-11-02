@@ -89,7 +89,7 @@ A complex pair $\lambda = -\zeta\omega_n \pm i\omega_n\sqrt{1 - \zeta^2}$ is an 
 | natural frequency | $\omega_n = \lvert\lambda\rvert$ | how stiff |
 | damping ratio | $\zeta = -\mathrm{Re}(\lambda)/\lvert\lambda\rvert$ | how quickly it dies, per cycle |
 | period | $2\pi/\mathrm{Im}(\lambda)$ | seconds per cycle |
-| time to half | $\ln 2/(-\mathrm{Re}\,\lambda)$ | negative: time to double |
+| time to half | $\ln 2/(-\mathrm{Re}(\lambda))$ | negative: time to double |
 
 A real root $\lambda = -1/T$ is a subsidence with time constant T, or a divergence if
 $\lambda > 0$.
