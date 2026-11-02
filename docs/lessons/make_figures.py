@@ -18,6 +18,7 @@ from flightdyn import plotting as P
 from flightdyn.aircraft import MassProperties
 from flightdyn.linearization import lateral, linearize, longitudinal
 from flightdyn.modal_analysis import lateral_modes, longitudinal_modes, mode_shape
+from flightdyn.nonlinear_sim import Pulse, simulate, simulate_linear
 from flightdyn.rotations import euler_rates
 from flightdyn.trim_solver import trim, trim_guess
 from flightdyn.units import G0, KT, LBF
@@ -244,7 +245,49 @@ def l4_mode_shapes():
     save(fig, "l4_mode_shapes.png")
 
 
-FIGURES = [l1_precession, l1_gimbal_lock, l3_trim_curves, l3_turns, l4_s_plane, l4_mode_shapes]
+def l5_large_bank():
+    """A large aileron input: where the linear model stops describing the aircraft."""
+    ac, c = b747(2), b747_condition(2)
+    t = trim(ac, c["V"], 3000.0)
+    lm = linearize(ac, t)
+    inp = [Pulse("da", np.radians(20.0), 1.0, 20.0)]
+    nl = simulate(ac, t.x, t.controls, inp, t_end=60.0, dt=0.05)
+    # lateral linear model with heading: (v, p, r, phi, psi)
+    lat_idx = [1, 3, 5, 6, 8]
+    lin = simulate_linear(lm.submodel(lat_idx, [1, 2]), inp, t_end=60.0, dt=0.05,
+                          control_index=(1, 2))  # fmt: skip
+    d = nl.x - t.x
+    fig, axes = plt.subplots(2, 2, figsize=(11, 6.5), sharex=True)
+    rows = [
+        (axes[0, 0], "bank angle φ [deg]", np.degrees(d[:, 6]), np.degrees(lin.x[:, 3])),
+        (axes[0, 1], "heading ψ [deg]", np.degrees(d[:, 8]), np.degrees(lin.x[:, 4])),
+        (axes[1, 0], "sideslip β [deg]",
+         np.degrees(np.arcsin(nl.x[:, 1] / np.linalg.norm(nl.x[:, :3], axis=1))),
+         np.degrees(lin.x[:, 0] / c["V"])),
+        (axes[1, 1], "altitude change Δh [m]", -d[:, 11], np.zeros_like(lin.t)),
+    ]  # fmt: skip
+    for ax, lab, a, b in rows:
+        ax.plot(nl.t, a, color=P.SERIES[0], label="nonlinear 6-DOF")
+        ax.plot(lin.t, b, "--", color=P.REFERENCE, lw=1, label="linear lateral model")
+        ax.set_ylabel(lab)
+    for ax in axes[1]:
+        ax.set_xlabel("time [s]")
+    axes[0, 0].legend(loc="lower right")
+    fig.suptitle("747, 165 kt: 20° of aileron for 20 s, controls then free", x=0.02, ha="left",
+                 fontsize=12, fontweight="bold")  # fmt: skip
+    fig.tight_layout()
+    save(fig, "l5_large_bank.png")
+
+
+FIGURES = [
+    l1_precession,
+    l1_gimbal_lock,
+    l3_trim_curves,
+    l3_turns,
+    l4_s_plane,
+    l4_mode_shapes,
+    l5_large_bank,
+]
 
 if __name__ == "__main__":
     P.use_style()

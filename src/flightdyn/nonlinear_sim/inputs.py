@@ -49,7 +49,8 @@ class Pulse:
 @dataclass(frozen=True)
 class Doublet:
     """+amplitude for ``width`` seconds, then -amplitude for ``width`` seconds: a zero-mean
-    input that excites a band of frequencies around 1/(2 width) without leaving a trim offset."""
+    input whose spectrum, 4 a sin^2(w T / 2) / w with T = width, peaks at w = 2.33 / T and
+    vanishes at w = 0, so it excites the faster modes without leaving a trim offset."""
 
     channel: str
     amplitude: float
