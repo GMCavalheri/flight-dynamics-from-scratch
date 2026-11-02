@@ -136,9 +136,10 @@ def test_navion_modes_reproduce_teper_to_printed_digits():
 @pytest.mark.parametrize("fc", B747_FLIGHT_CONDITIONS)
 def test_b747_modes_reproduce_cr2144(fc):
     # CR-2144 Tables IX-4/IX-8 (3 figures) -> Tables IX-5/IX-9. Within 1.2 %, except fc 5's
-    # spiral (1.4 %) and fc 7's phugoid, a nearly critically damped pair (zeta 0.32,
-    # wn 0.0098 rad/s) whose roots move by 8 % in zeta and 4 % in wn when the printed
-    # derivatives are varied within their rounding (validation/mode_validation.py)
+    # spiral (1.8 %) and fc 7's phugoid, a nearly critically damped pair (zeta 0.32,
+    # wn 0.0098 rad/s); both lie inside the band their roots span when the printed
+    # derivatives vary within their rounding (fc 7: -11 % to +0.5 % in zeta, -2.6 % to
+    # +9.7 % in wn; validation/mode_validation.py)
     d = b747(fc)
     dd, thrust = b747_table_derivatives(fc)
     m = _modes(dd, np.radians(d["ALPHA"] + d["GAMMA"]), thrust)

@@ -16,6 +16,8 @@ from scipy.integrate import solve_ivp
 from flightdyn import equations_of_motion as eom
 from flightdyn import plotting as P
 from flightdyn.aircraft import MassProperties
+from flightdyn.linearization import lateral, linearize, longitudinal
+from flightdyn.modal_analysis import lateral_modes, longitudinal_modes, mode_shape
 from flightdyn.rotations import euler_rates
 from flightdyn.trim_solver import trim, trim_guess
 from flightdyn.units import G0, KT, LBF
@@ -159,7 +161,90 @@ def l3_turns():
     save(fig, "l3_turns.png")
 
 
-FIGURES = [l1_precession, l1_gimbal_lock, l3_trim_curves, l3_turns]
+def _b747_fc2_linear():
+    ac, c = b747(2), b747_condition(2)
+    t = trim(ac, c["V"], c["h"])
+    lm = linearize(ac, t)
+    return longitudinal(lm), lateral(lm, c["V"]), c["V"]
+
+
+def l4_s_plane():
+    """All eight roots of the 747 power-approach model, with a zoom on the slow ones."""
+    lon, lat, _ = _b747_fc2_linear()
+    modes = longitudinal_modes(lon.A) | lateral_modes(lat.A)
+    colors = dict(
+        short_period=P.SERIES[0],
+        phugoid=P.SERIES[1],
+        dutch_roll=P.SERIES[2],
+        roll=P.SERIES[3],
+        spiral=P.SERIES[4],
+    )
+    labels = dict(
+        short_period="short period",
+        phugoid="phugoid",
+        dutch_roll="dutch roll",
+        roll="roll subsidence",
+        spiral="spiral",
+    )
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.6))
+    for ax in axes:
+        for name, m in modes.items():
+            ev = np.array(m.eigenvalues)
+            ax.plot(ev.real, ev.imag, "x", ms=9, mew=2, color=colors[name], label=labels[name])
+        ax.axhline(0, color=P.TEXT_MUTED, lw=0.8)
+        ax.axvline(0, color=P.TEXT_MUTED, lw=0.8)
+        ax.set_xlabel("real part σ [1/s]")
+        ax.set_ylabel("imaginary part ω [rad/s]")
+    for zeta in (0.1, 0.3, 0.6):
+        r = np.linspace(0, 1.2, 50)
+        th = np.arccos(zeta)
+        axes[0].plot(-r * np.cos(th), r * np.sin(th), ":", color=P.GRID, lw=1)
+        axes[0].annotate(f"ζ = {zeta}", (-1.15 * np.cos(th), 1.15 * np.sin(th)), fontsize=8,
+                         color=P.TEXT_MUTED)  # fmt: skip
+    axes[0].set_title("747, power approach: the eight roots")
+    axes[0].legend(loc="lower left", fontsize=8)
+    axes[1].set_xlim(-0.08, 0.02)
+    axes[1].set_ylim(-0.2, 0.2)
+    axes[1].set_title("Zoom: phugoid and spiral")
+    save(fig, "l4_s_plane.png")
+
+
+def _phasor(ax, vec, names, title):
+    for k, (z, name) in enumerate(zip(vec, names, strict=True)):
+        ax.annotate(
+            "", xy=(np.angle(z), abs(z)), xytext=(0, 0),
+            arrowprops=dict(arrowstyle="-|>", color=P.SERIES[k], lw=2),
+        )  # fmt: skip
+        ax.plot([], [], color=P.SERIES[k], lw=2, label=f"{name}  |{abs(z):.2f}|")
+    ax.set_rmax(1.15 * max(abs(vec)))
+    ax.set_title(title, pad=14)
+    ax.legend(loc="upper left", bbox_to_anchor=(0.85, 1.12), fontsize=8)
+    ax.set_yticklabels([])
+
+
+def l4_mode_shapes():
+    """Phasor diagrams: relative amplitude and phase of each state in a mode."""
+    lon, lat, V = _b747_fc2_linear()
+    ml = longitudinal_modes(lon.A)
+    md = lateral_modes(lat.A)
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.4), subplot_kw=dict(projection="polar"))
+    # longitudinal states as angles: u/V, alpha = w/V, theta; normalised to theta = 1
+    S = np.diag([1 / V, 1 / V, 1.0, 1.0])
+    for ax, name, title in (
+        (axes[0], "short_period", "Short period (θ = 1)"),
+        (axes[1], "phugoid", "Phugoid (θ = 1)"),
+    ):
+        lam = ml[name].eigenvalues[-1]
+        v = S @ mode_shape(lon.A, lam, normalise=3)
+        _phasor(ax, v[[0, 1, 3]], ["u/V", "α", "θ"], title)
+    lam = md["dutch_roll"].eigenvalues[-1]
+    v = mode_shape(lat.A, lam, normalise=0)
+    psi = v[2] / lam  # heading: psi_dot = r (theta0 small)
+    _phasor(axes[2], np.array([v[0], v[3], psi]), ["β", "φ", "ψ"], "Dutch roll (β = 1)")
+    save(fig, "l4_mode_shapes.png")
+
+
+FIGURES = [l1_precession, l1_gimbal_lock, l3_trim_curves, l3_turns, l4_s_plane, l4_mode_shapes]
 
 if __name__ == "__main__":
     P.use_style()
