@@ -118,23 +118,26 @@ def test_wings_level_and_zero_sideslip_agree_for_a_symmetric_aircraft():
 
 
 @pytest.mark.parametrize("fc", (1, 2))
-def test_b747_trim_offset_is_the_thrust_line(fc):
-    # CR-2144's derivatives are trimmed (Cm = 0) at the published alpha0, but its thrust line
-    # (i_th = 2.5 deg, 10 ft below the CG; Table IX-3) adds a nose-up moment and a lift
-    # component the aerodynamic data does not contain. The model's trim differs from the
-    # published condition by exactly that: Cm balance T l_th / (q S c) + Cm_a da + Cm_de de = 0
+def test_b747_trims_near_its_published_reference(fc):
+    # The model's Cm0 balances the published thrust line's moment at the reference
+    # (reference_aircraft.py), so the elevator stays near its reference setting. The tabulated
+    # CL is W/(q S) and leaves out the lift of the thrust, which is inclined alpha + i_th to the
+    # flight path: the trim angle of attack is lower by about T sin(alpha + i_th) / (q S CL_a)
     ac, c = b747(fc), b747_condition(fc)
     t = trim(ac, c["V"], c["h"])
     d = ac.aero
     atm = isa(c["h"], geopotential=True)
-    qSc = 0.5 * float(atm.rho) * c["V"] ** 2 * ac.geometry.S * ac.geometry.cbar
+    qS = 0.5 * float(atm.rho) * c["V"] ** 2 * ac.geometry.S
+    thrust_lift = t.thrust * np.sin(t.alpha + ac.thrust.incidence) / (qS * d.CL_a)
+    assert abs(np.degrees(t.de)) < 0.5
+    assert t.alpha - c["alpha"] == pytest.approx(-thrust_lift, abs=np.radians(0.1))
+    # pitch balance: aerodynamic moment plus thrust moment vanish at the trim
     dM = c["V"] / float(atm.a) - d.mach0
-    cm = t.thrust * ac.thrust.offset / qSc + d.Cm_a * (t.alpha - d.alpha0) + d.Cm_M * dM
-    assert t.de == pytest.approx(-cm / d.Cm_de, rel=1e-9)
-    assert abs(np.degrees(t.alpha - c["alpha"])) < 1.0
-    # without the thrust line's offset and tilt the trim moves back toward the reference
-    t0 = trim(ac.with_(thrust=ThrustLine(0.0, 0.0)), c["V"], c["h"])
-    assert abs(t0.de) < abs(t.de) and abs(t0.alpha - c["alpha"]) < abs(t.alpha - c["alpha"])
+    cm = d.Cm0 + d.Cm_a * (t.alpha - d.alpha0) + d.Cm_M * dM + d.Cm_de * t.de
+    assert cm + t.thrust * ac.thrust.offset / (qS * ac.geometry.cbar) == pytest.approx(0, abs=1e-12)
+    # with Cm0 = 0 (taking "trimmed" to exclude the thrust moment) the elevator must hold it
+    t0 = trim(ac.with_(aero=d.with_(Cm0=0.0)), c["V"], c["h"])
+    assert abs(t0.de) > 4 * abs(t.de)
 
 
 def test_navion_trims_at_its_reference():

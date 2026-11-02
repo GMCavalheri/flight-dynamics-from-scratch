@@ -157,3 +157,32 @@ def body_forces_moments(c: AeroCoefficients, geom: Geometry, qbar: float, alpha:
     force = qS * np.array([c.CL * sa - c.CD * ca, c.CY, -(c.CL * ca + c.CD * sa)])
     moment = qS * np.array([geom.b * c.Cl, geom.cbar * c.Cm, geom.b * c.Cn])
     return force, moment
+
+
+def to_stability_axes(ac):
+    """The same aircraft described in stability axes (body axes rotated by alpha0 about y).
+
+    The derivative model is re-referenced to alpha0 = 0 (lift and drag do not change; lateral
+    derivatives, if in body axes, are rotated), the inertia tensor is rotated, and the thrust
+    line's incidence grows by alpha0. The physics is unchanged — every eigenvalue is the same —
+    but W0 = 0, which is the form the classical approximations assume.
+    """
+    from .dimensional import body_axis_coefficients  # local: dimensional imports this module
+
+    d = ac.aero
+    a = d.alpha0
+    ca, sa = np.cos(a), np.sin(a)
+    C = np.array([[ca, 0.0, sa], [0.0, 1.0, 0.0], [-sa, 0.0, ca]])  # rows: stability axes
+    I_s = C @ ac.mass.inertia @ C.T
+    lat = {}
+    if d.lateral_axes == "body":
+        # body-axis derivatives -> stability axes: the inverse rotation of Appendix B
+        bc = body_axis_coefficients(d.with_(alpha0=-a))
+        lat = {k: getattr(bc, k) for k in ("Cl_b", "Cl_p", "Cl_r", "Cl_da", "Cl_dr",
+                                           "Cn_b", "Cn_p", "Cn_r", "Cn_da", "Cn_dr")}  # fmt: skip
+        Yp, Yr = d.CY_p * ca + d.CY_r * sa, -d.CY_p * sa + d.CY_r * ca
+        lat.update(CY_p=Yp, CY_r=Yr)
+    aero = d.with_(alpha0=0.0, lateral_axes="stability", **lat)
+    mass = replace(ac.mass, Ixx=I_s[0, 0], Iyy=I_s[1, 1], Izz=I_s[2, 2], Ixz=-I_s[0, 2])
+    thrust = replace(ac.thrust, incidence=ac.thrust.incidence + a)
+    return ac.with_(aero=aero, mass=mass, thrust=thrust)

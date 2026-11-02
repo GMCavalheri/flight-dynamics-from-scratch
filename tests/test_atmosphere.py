@@ -61,3 +61,12 @@ def test_hot_day_offset():
 def test_out_of_range():
     with pytest.raises(ValueError):
         isa(40000.0)
+
+
+def test_below_sea_level():
+    # US Standard Atmosphere 1976, Table I at Z = -1000 m (geometric):
+    # T = 294.651 K, P = 1.1393E+05 Pa, rho = 1.3470 kg/m^3
+    a = isa(-1000.0)
+    assert a.T == pytest.approx(294.651, abs=1e-3)
+    assert a.P == pytest.approx(1.1393e5, rel=5e-5)
+    assert a.rho == pytest.approx(1.3470, rel=5e-5)

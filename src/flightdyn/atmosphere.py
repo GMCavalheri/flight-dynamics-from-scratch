@@ -1,7 +1,9 @@
 """International Standard Atmosphere, built from its published definition.
 
-Reused unchanged from the sibling project propulsion-from-scratch (AERO-03), where it is
-verified against the US Standard Atmosphere 1976 tables (tests/test_atmosphere.py here).
+Reused from the sibling project propulsion-from-scratch (AERO-03), where it is verified
+against the US Standard Atmosphere 1976 tables (tests/test_atmosphere.py here). One change:
+the troposphere extends down to -5 km, where the US 1976 tables begin, so that a simulated or
+perturbed aircraft at sea level may dip below it.
 
 Definition: ICAO Doc 7488/3, *Manual of the ICAO Standard Atmosphere* (1993), identical to the
 US Standard Atmosphere 1976 below 32 km. The atmosphere is a perfect gas in hydrostatic
@@ -36,7 +38,7 @@ R_EARTH = 6356766.0  # m, radius used to define geopotential altitude
 
 # (base geopotential altitude [m], base temperature [K], lapse rate [K/m])
 LAYERS = ((0.0, 288.15, -0.0065), (11000.0, 216.65, 0.0), (20000.0, 216.65, 0.001))
-H_MAX = 32000.0
+H_MIN, H_MAX = -5000.0, 32000.0  # the US 1976 tables start at -5 km
 
 
 def _base_pressures() -> tuple[float, ...]:
@@ -92,14 +94,14 @@ class Atmosphere:
 
 
 def isa(h, dT: float = 0.0, geopotential: bool = False) -> Atmosphere:
-    """ISA state at altitude ``h`` [m] (geometric unless ``geopotential``), 0 <= h <= 32 km.
+    """ISA state at altitude ``h`` [m] (geometric unless ``geopotential``), -5 km to 32 km.
 
     ``dT`` [K] shifts the temperature of the whole column (ISA+dT day) at fixed pressure.
     """
     h = np.asarray(h, dtype=float)
     H = h if geopotential else geometric_to_geopotential(h)
-    if np.any(H < -1e-9) or np.any(H > H_MAX + 1e-9):
-        raise ValueError("ISA model is defined here for 0 <= H <= 32 km")
+    if np.any(H < H_MIN - 1e-9) or np.any(H > H_MAX + 1e-9):
+        raise ValueError("ISA model is defined here for -5 km <= H <= 32 km")
     T = np.empty_like(H)
     P = np.empty_like(H)
     for i, (h0, t0, lam) in enumerate(LAYERS):

@@ -146,6 +146,7 @@ LON = [
     ("MDE", "Mde", 1),
     ("XU*", "Xu", 1),
     ("ZU*", "Zu", 1),
+    ("MU*", "Mu", FT),
 ]
 LAT = [
     ("YV", "Yv"),
@@ -172,18 +173,15 @@ def _b747_dimensional(fc, axes="stability"):
 @pytest.mark.parametrize("fc", (1, 2))
 def test_b747_dimensional_derivatives_match_cr2144(fc):
     # agreement within 1 %: inputs and outputs are both printed to 3 figures, so rounding alone
-    # reaches 0.7 % (L'_b at fc 2). Two documented exceptions. Z_q: the table equals
-    # -rho S cbar U0 CN_q / (4 m), cos(alpha0) below the V form derived from the force model
-    # (1.1 % at fc 1). M_w: 1.7 % (fc 1) and 0.7 % (fc 2) below the table. Appendix A, and the
-    # derivation of dM/dw, add the Mach term 2 W0/U0 (M/2) Cm_M to Cm_a; the table values are
-    # reproduced to 0.35 % if it is subtracted instead, a sign slip in the report's
-    # computation. The model follows the derivation. X_u* and Z_u* also contain the report's
-    # thrust-speed term T_u, which the model lacks; they agree without it, so T_u is negligible
-    # here. M_u* is left out: the report's values are 1.6x (fc 2) to 3x (fc 1) smaller than its
-    # own Appendix A formula gives, which T_u cannot explain if X_u* agrees (validation report).
+    # reaches 0.7 % (L'_b at fc 2). M_u* and M_w agree only because the model's Cm0 balances
+    # the published thrust moment at the reference (reference_aircraft.py); with Cm0 = 0 they
+    # are off by a factor 1.6-3 and by 1.7 %. X_u* and Z_u* also contain the report's thrust-
+    # speed term T_u, which the model lacks; they agree without it. One exception: the table's
+    # Z_q equals -rho S cbar U0 CN_q / (4 m), cos(alpha0) below the V form the force model
+    # gives (1.1 % at fc 1).
     dd, ref = _b747_dimensional(fc), b747_data(fc)
     for key, attr, scale in LON:
-        tol = 2e-2 if key in ("MW", "ZQ") else 1e-2
+        tol = 1.2e-2 if key == "ZQ" else 1e-2
         assert getattr(dd, attr) * scale == pytest.approx(ref[key], rel=tol), key
     for key, attr in LAT:
         assert getattr(dd, attr) == pytest.approx(ref[key], rel=1e-2), key
@@ -211,3 +209,13 @@ def test_navion_dimensional_derivatives_scale_with_wing_area():
         assert n[key] / value == pytest.approx(184 / 180, abs=3e-4), key
     for key, value in forces:
         assert n[key] / value == pytest.approx(184 / 180 * 85.47 / 85.4, abs=5e-4), key
+
+
+def test_b747_cm0_is_what_reproduces_m_u():
+    # with the aerodynamic Cm0 = 0 at the reference, M_u* misses the table by 1.6-3x
+    for fc in (1, 2):
+        ac, cond = b747(fc), b747_condition(fc)
+        ac = ac.with_(aero=ac.aero.with_(Cm0=0.0))
+        rho = float(isa(cond["h"], geopotential=True).rho)
+        dd = dimensional_derivatives(ac.aero, ac.geometry, ac.mass, rho, cond["V"])
+        assert dd.Mu * FT / b747_data(fc)["MU*"] > 1.5

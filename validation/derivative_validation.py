@@ -81,11 +81,7 @@ NAVION = [
     ("N'da", "Nda_p", 1),
     ("N'dr", "Ndr_p", 1),
 ]
-NOTES = {
-    "ZQ": "table uses U0 where the force model gives V (cos α0)",
-    "MW": "table matches to 0.35 % with the Mach term's sign flipped",
-    "MU*": "report value not reproduced by its own Appendix A formula",
-}
+NOTES = {"ZQ": "table uses U0 where the force model gives V (cos α0)"}
 
 
 def b747_dimensional(fc: int, axes: str = "stability"):
@@ -147,7 +143,12 @@ def write_results(b, nv):
     worst = max(abs(pct(r["model"], r["ref"])) for r in b if r["key"] not in NOTES)
     lines += [
         "",
-        f"Worst agreement outside the three noted derivatives: {worst:.2f} %.",
+        f"Worst agreement outside the noted derivative: {worst:.2f} %.",
+        "",
+        "M_u* and M_w agree because the model's aerodynamic Cm0 at the reference balances the",
+        "published thrust moment, Cm0 = −T l_th / (q S c̄) (−0.096 at fc 1, −0.037 at fc 2;",
+        "`validation/reference_aircraft.py`). With Cm0 = 0, M_u* is 1.6–3× too large and M_w",
+        "1.7 % off: the report's derivatives were evaluated with the thrust moment trimmed out.",
         "",
         "## Navion (Teper 1969, Tables X-A to X-C → X-D, X-E)",
         "",

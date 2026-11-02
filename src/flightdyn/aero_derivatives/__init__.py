@@ -14,6 +14,7 @@ from .model import (
     body_to_stability_rates,
     coefficients,
     stability_to_body_moments,
+    to_stability_axes,
 )
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     "coefficients",
     "dimensional_derivatives",
     "stability_to_body_moments",
+    "to_stability_axes",
 ]

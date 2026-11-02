@@ -12,7 +12,7 @@ own dimensional-derivative table. Report units (ft, s, rad).
 | ZW | 1 | -0.512 | -0.5113 | -0.13 % |  |
 | ZWD | 1 | 0.0334 | 0.03337 | -0.10 % |  |
 | ZQ | 1 | -6.22 | -6.288 | +1.09 % (table uses U0 where the force model gives V (cos α0)) |  |
-| MW | 1 | -0.00177 | -0.001739 | -1.77 % (table matches to 0.35 % with the Mach term's sign flipped) |  |
+| MW | 1 | -0.00177 | -0.001773 | +0.18 % |  |
 | MWD | 1 | -0.000246 | -0.0002463 | +0.12 % |  |
 | MQ | 1 | -0.357 | -0.3569 | -0.03 % |  |
 | XDE | 1 | 0.959 | 0.9583 | -0.08 % |  |
@@ -20,7 +20,7 @@ own dimensional-derivative table. Report units (ft, s, rad).
 | MDE | 1 | -0.378 | -0.3779 | -0.03 % |  |
 | XU* | 1 | -0.0209 | -0.02089 | -0.06 % |  |
 | ZU* | 1 | -0.202 | -0.2022 | +0.08 % |  |
-| MU* | 1 | 0.000117 | 0.0003479 | +197.33 % (report value not reproduced by its own Appendix A formula) |  |
+| MU* | 1 | 0.000117 | 0.0001169 | -0.10 % |  |
 | YV | 1 | -0.089 | -0.08899 | -0.01 % | -0.0 % |
 | Y*DR | 1 | 0.0148 | 0.01475 | -0.34 % | -0.3 % |
 | LB' | 1 | -1.33 | -1.332 | +0.15 % | -8.1 % |
@@ -37,7 +37,7 @@ own dimensional-derivative table. Report units (ft, s, rad).
 | ZW | 2 | -0.613 | -0.6117 | -0.20 % |  |
 | ZWD | 2 | 0.0338 | 0.03378 | -0.07 % |  |
 | ZQ | 2 | -7.58 | -7.605 | +0.33 % (table uses U0 where the force model gives V (cos α0)) |  |
-| MW | 2 | -0.00193 | -0.001916 | -0.72 % (table matches to 0.35 % with the Mach term's sign flipped) |  |
+| MW | 2 | -0.00193 | -0.001927 | -0.13 % |  |
 | MWD | 2 | -0.00024 | -0.0002403 | +0.12 % |  |
 | MQ | 2 | -0.437 | -0.4364 | -0.14 % |  |
 | XDE | 2 | 0.971 | 0.9674 | -0.38 % |  |
@@ -45,7 +45,7 @@ own dimensional-derivative table. Report units (ft, s, rad).
 | MDE | 2 | -0.574 | -0.5723 | -0.29 % |  |
 | XU* | 2 | -0.0108 | -0.0108 | +0.03 % |  |
 | ZU* | 2 | -0.15 | -0.1503 | +0.17 % |  |
-| MU* | 2 | 0.000181 | 0.0002951 | +63.01 % (report value not reproduced by its own Appendix A formula) |  |
+| MU* | 2 | 0.000181 | 0.0001811 | +0.03 % |  |
 | YV | 2 | -0.0997 | -0.09951 | -0.19 % | -0.2 % |
 | Y*DR | 2 | 0.0182 | 0.01814 | -0.33 % | -0.3 % |
 | LB' | 2 | -1.63 | -1.619 | -0.65 % | -6.7 % |
@@ -59,7 +59,12 @@ own dimensional-derivative table. Report units (ft, s, rad).
 | L'DR | 2 | 0.11 | 0.1096 | -0.36 % | -68.9 % |
 | N'DR | 2 | -0.233 | -0.2325 | -0.20 % | +1.6 % |
 
-Worst agreement outside the three noted derivatives: 0.65 %.
+Worst agreement outside the noted derivative: 0.65 %.
+
+M_u* and M_w agree because the model's aerodynamic Cm0 at the reference balances the
+published thrust moment, Cm0 = −T l_th / (q S c̄) (−0.096 at fc 1, −0.037 at fc 2;
+`validation/reference_aircraft.py`). With Cm0 = 0, M_u* is 1.6–3× too large and M_w
+1.7 % off: the report's derivatives were evaluated with the thrust moment trimmed out.
 
 ## Navion (Teper 1969, Tables X-A to X-C → X-D, X-E)
 
