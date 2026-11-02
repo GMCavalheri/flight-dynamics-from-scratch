@@ -4,7 +4,7 @@ The coefficients are first-order Taylor series about a reference flight conditio
 tabulated by NASA CR-2144 (Heffley & Jewell 1972, Appendix A) and Etkin & Reid (ch. 5):
 
     CL = CL0 + CL_a (alpha - alpha0) + CL_adot a_hat + CL_q q_hat + CL_M (M - M0) + CL_de de
-    CD = CD0 + CD_a (alpha - alpha0) + CD_M (M - M0) + CD_de de
+    CD = CD0 + CD_a (alpha - alpha0) + CD_q q_hat + CD_M (M - M0) + CD_de de
     Cm = Cm0 + Cm_a (alpha - alpha0) + Cm_adot a_hat + Cm_q q_hat + Cm_M (M - M0) + Cm_de de
     CY = CY_b beta + CY_p p_hat + CY_r r_hat + CY_da da + CY_dr dr
     Cl = Cl_b beta + Cl_p p_hat + Cl_r r_hat + Cl_da da + Cl_dr dr      (likewise Cn)
@@ -70,6 +70,7 @@ class StabilityDerivatives:
     CL_adot: float = 0.0
     Cm_adot: float = 0.0
     CL_q: float = 0.0
+    CD_q: float = 0.0
     Cm_q: float = 0.0
     CL_M: float = 0.0
     CD_M: float = 0.0
@@ -133,7 +134,7 @@ def coefficients(
     c2v, b2v = geom.cbar / (2 * V), geom.b / (2 * V)
     q_hat, a_hat = q * c2v, alpha_dot * c2v
     CL = d.CL0 + d.CL_a * da_ + d.CL_adot * a_hat + d.CL_q * q_hat + d.CL_M * dm + d.CL_de * de
-    CD = d.CD0 + d.CD_a * da_ + d.CD_M * dm + d.CD_de * de
+    CD = d.CD0 + d.CD_a * da_ + d.CD_q * q_hat + d.CD_M * dm + d.CD_de * de
     Cm = d.Cm0 + d.Cm_a * da_ + d.Cm_adot * a_hat + d.Cm_q * q_hat + d.Cm_M * dm + d.Cm_de * de
     stab = d.lateral_axes == "stability"
     pl, rl = body_to_stability_rates(p, r, d.alpha0) if stab else (p, r)
