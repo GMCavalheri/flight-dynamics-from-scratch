@@ -18,11 +18,18 @@ Plan: `AERO-04-flight-dynamics-from-scratch-PLAN.md` (tick the phase checkboxes 
 ## Layout
 - `src/flightdyn/` — single package; subpackages mirror the plan: `equations_of_motion`,
   `aero_derivatives`, `trim_solver`, `linearization`, `modal_analysis`, `nonlinear_sim`,
-  `trade_studies`; shared `atmosphere.py`, `units.py`, `rotations.py`, `aircraft.py`,
-  `plotting.py`.
-- `tests/` — pytest, one file per module. `validation/` — scripts + cited reference data.
-- `docs/` — theory note per module, validation report, figures; `docs/lessons/` is the lesson
-  course, one lesson per phase (keep its numbers in sync with the code). `notebooks/` — demos.
+  `trade_studies`; shared `atmosphere.py` (ISA from AERO-03, extended to -5 km), `units.py`,
+  `rotations.py`, `aircraft.py`, `plotting.py` (style, aircraft glyphs, GIF writer).
+- `tests/` — pytest, one file per module; `tests/conftest.py` puts `validation/` on the path.
+- `validation/` — cited reference data (`reference_data/`, loaded by `reference.py`), the
+  reference aircraft (`reference_aircraft.py`), one script per comparison, `run_all.py`, and
+  `results/`. `vlm_navion.py` is optional: it needs the AERO-01 `aero` package
+  (`uv run --with "aero @ git+https://github.com/GMCavalheri/aerodynamics-from-scratch" ...`)
+  and is skipped without it; it is not a project dependency.
+- `docs/` — theory note per module, validation report, figures; `docs/lessons/` is a
+  seven-lesson course (keep its numbers in sync with the code: rerun the snippets and the
+  scripts that produced them after any model change). `notebooks/` — one executed demo per
+  lesson.
 
 ## Conventions
 - **SI units internally** (m, s, kg, N, rad). Helpers that take or return other units say so
@@ -58,8 +65,11 @@ Plan: `AERO-04-flight-dynamics-from-scratch-PLAN.md` (tick the phase checkboxes 
 - Cite textbooks at chapter level unless the section/table number has been checked in the book.
 - Reference data in `validation/reference_data/` must carry its citation (document, table,
   page). Do not invent data: leave a value out if it cannot be checked against its source.
-- Assumed inputs (thrust line, engine model, CG shifts in trade studies) are labelled as
-  assumptions, never presented as aircraft data.
+- Label every input as data (printed, cited), assumption (chosen), deduction (forced by
+  printed numbers, e.g. the 747's Cm0 balancing its thrust line) or calibration (fitted, e.g.
+  the trade-study tail). Calibrated quantities cannot be used to validate.
+- Judge agreement against the rounding of the printed source (`validation/mode_validation.py`
+  has a Monte Carlo over rounding intervals); write the reason for any tolerance in the test.
 - No employer references in the repo; name aircraft types only.
 
 ## Workflow

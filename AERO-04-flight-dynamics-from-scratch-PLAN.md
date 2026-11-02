@@ -58,7 +58,7 @@ flight-dynamics-from-scratch/
 - [x] **Phase 4 — Linearization and modal analysis**: linearize about trim, extract state-space matrices, compute and classify eigenvalues into the classical flight modes.
 - [x] **Phase 5 — Nonlinear simulation**: simulate full nonlinear response to control doublets, compare time constants/frequencies against the linear mode predictions from Phase 4.
 - [x] **Phase 6 — Stability trade studies**: sweep CG location and tail volume coefficient, show their effect on static margin and dynamic mode damping/frequency.
-- [ ] **Phase 7 — Documentation and publishing**: written explanation of each mode's physical meaning, animated visualizations of aircraft response.
+- [x] **Phase 7 — Documentation and publishing**: written explanation of each mode's physical meaning, animated visualizations of aircraft response.
 
 ## Validation Strategy
 - Linearized mode frequencies/damping ratios compared against published values for a reference aircraft with known stability derivatives.
