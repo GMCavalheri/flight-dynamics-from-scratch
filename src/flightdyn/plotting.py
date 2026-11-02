@@ -10,6 +10,7 @@ from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 SURFACE = "#fcfcfb"
@@ -65,4 +66,49 @@ def save(fig, name: str, directory: Path = FIGURES) -> Path:
     path = directory / name
     fig.savefig(path, metadata={"Software": None})
     plt.close(fig)
+    return path
+
+
+# --- aircraft glyphs for mode animations -------------------------------------------------
+# Outlines in units of fuselage length, nose at +x. Schematic, not any particular aircraft.
+_SIDE = [(0.50, 0.00), (0.45, 0.05), (0.32, 0.08), (-0.34, 0.07), (-0.44, 0.24), (-0.53, 0.24),
+         (-0.53, 0.06), (-0.56, 0.04), (-0.52, 0.00), (-0.30, -0.05), (0.38, -0.06),
+         (0.47, -0.03)]  # fmt: skip
+_TOP = [(0.50, 0.00), (0.40, 0.04), (0.10, 0.05), (-0.10, 0.48), (-0.20, 0.48), (-0.12, 0.05),
+        (-0.40, 0.04), (-0.52, 0.18), (-0.56, 0.18), (-0.52, 0.00), (-0.56, -0.18),
+        (-0.52, -0.18), (-0.40, -0.04), (-0.12, -0.05), (-0.20, -0.48), (-0.10, -0.48),
+        (0.10, -0.05), (0.40, -0.04)]  # fmt: skip
+_REAR = [(-0.50, 0.02), (-0.06, 0.04), (-0.05, 0.22), (0.00, 0.30), (0.05, 0.22), (0.06, 0.04),
+         (0.50, 0.02), (0.50, -0.01), (0.06, -0.03), (0.00, -0.06), (-0.06, -0.03),
+         (-0.50, -0.01)]  # fmt: skip
+
+
+def _place(outline, x, y, angle, scale):
+    pts = np.array(outline) * scale
+    c, s = np.cos(angle), np.sin(angle)
+    return pts @ np.array([[c, s], [-s, c]]) + np.array([x, y])
+
+
+def aircraft_side(x, y, pitch, scale=1.0):
+    """Side-view outline polygon, nose-up pitch angle [rad] counter-clockwise."""
+    return _place(_SIDE, x, y, pitch, scale)
+
+
+def aircraft_top(x, y, heading, scale=1.0):
+    """Top-view outline, heading [rad] measured counter-clockwise from +x on the page."""
+    return _place(_TOP, x, y, heading, scale)
+
+
+def aircraft_rear(roll, scale=1.0):
+    """Rear-view outline (looking forward); right-wing-down roll is clockwise on the page."""
+    return _place(_REAR, 0.0, 0.0, -roll, scale)
+
+
+def save_gif(anim, name: str, fps: int = 15, directory: Path = FIGURES) -> Path:
+    from matplotlib.animation import PillowWriter
+
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / name
+    anim.save(path, writer=PillowWriter(fps=fps), dpi=80)
+    plt.close(anim._fig)
     return path
