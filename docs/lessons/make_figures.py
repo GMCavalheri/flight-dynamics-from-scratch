@@ -20,6 +20,7 @@ from flightdyn.linearization import lateral, linearize, longitudinal
 from flightdyn.modal_analysis import lateral_modes, longitudinal_modes, mode_shape
 from flightdyn.nonlinear_sim import Pulse, simulate, simulate_linear
 from flightdyn.rotations import euler_rates
+from flightdyn.trade_studies import move_cg, neutral_point_shift
 from flightdyn.trim_solver import trim, trim_guess
 from flightdyn.units import G0, KT, LBF
 
@@ -279,6 +280,27 @@ def l5_large_bank():
     save(fig, "l5_large_bank.png")
 
 
+def l6_cm_alpha():
+    """Pitching moment against angle of attack for several CG positions (747, fc 2)."""
+    ac = b747(2)
+    hn = neutral_point_shift(ac)
+    a = np.radians(np.linspace(0.0, 12.0, 50))
+    fig, ax = plt.subplots(figsize=(8, 4.6))
+    for k, h in enumerate((0.10, 0.25, 0.40, 0.25 + hn, 0.55)):
+        d = move_cg(ac, h - 0.25).aero
+        cm = d.Cm0 + d.Cm_a * (a - d.alpha0)
+        label = f"h = {h:.2f}" + (" (neutral point)" if abs(h - 0.25 - hn) < 1e-9 else "")
+        ls = "--" if "neutral" in label else "-"
+        ax.plot(np.degrees(a), cm, ls, color=P.SERIES[k], label=label)
+    ax.axhline(0, color=P.TEXT_MUTED, lw=0.8)
+    ax.axvline(np.degrees(ac.aero.alpha0), color=P.GRID, lw=3, zorder=0)
+    ax.set_xlabel("angle of attack α [deg]")
+    ax.set_ylabel("aerodynamic C_m about the CG (δe = 0)")
+    ax.set_title("747 power approach: the slope of C_m(α) is the static stability")
+    ax.legend(loc="upper right", fontsize=8)
+    save(fig, "l6_cm_alpha.png")
+
+
 FIGURES = [
     l1_precession,
     l1_gimbal_lock,
@@ -287,6 +309,7 @@ FIGURES = [
     l4_s_plane,
     l4_mode_shapes,
     l5_large_bank,
+    l6_cm_alpha,
 ]
 
 if __name__ == "__main__":
